@@ -1,14 +1,13 @@
 import Result "mo:base/Result";
 import Option "mo:base/Option";
 import Principal "mo:base/Principal";
-import Map "mo:map/Map";
+import HashMap "mo:base/HashMap";
 import Buffer "mo:base/Buffer";
-import { phash } "mo:map/Map";
 actor MBToken {
 
   public type Result<A, B> = Result.Result<A, B>;
 
-  let ledger = Map.new<Principal, Nat>();
+  let ledger = HashMap.HashMap<Principal, Nat>(0, Principal.equal, Principal.hash);
 
   public query func tokenName() : async Text {
     return "Motoko Bootcamp Token";
@@ -19,48 +18,54 @@ actor MBToken {
   };
 
   public func mint(owner : Principal, amount : Nat) : async Result<(), Text> {
-    let balance = Option.get(Map.get<Principal, Nat>(ledger, phash, owner), 0);
-    Map.set<Principal, Nat>(ledger, phash, owner, balance + amount);
-    return #ok();
+      let balance = Option.get(ledger.get(owner), 0);
+      ledger.put(owner, balance + amount);
+      return #ok();
   };
 
   public func burn(owner : Principal, amount : Nat) : async Result<(), Text> {
-    let balance = Option.get(Map.get<Principal, Nat>(ledger, phash, owner), 0);
-    if (balance < amount) {
-      return #err("Insufficient balance to burn");
-    };
-    Map.set<Principal, Nat>(ledger, phash, owner, balance - amount);
-    return #ok();
+      let balance = Option.get(ledger.get(owner), 0);
+      if (balance < amount) {
+          return #err("Insufficient balance to burn");
+      };
+      ledger.put(owner, balance - amount);
+      return #ok();
+  };
+
+  func _burn(owner : Principal, amount : Nat) : () {
+      let balance = Option.get(ledger.get(owner), 0);
+      ledger.put(owner, balance - amount);
+      return;
   };
 
   public query func balanceOf(owner : Principal) : async Nat {
-    return Option.get(Map.get<Principal, Nat>(ledger, phash, owner), 0);
+      return (Option.get(ledger.get(owner), 0));
   };
 
   public query func balanceOfArray(owners : [Principal]) : async [Nat] {
     var balances = Buffer.Buffer<Nat>(0);
     for (owner in owners.vals()) {
-        balances.add(Option.get(Map.get<Principal, Nat>(ledger, phash, owner), 0));
+        balances.add(Option.get(ledger.get(owner), 0));
     };
     return Buffer.toArray(balances);
   };
 
   public query func totalSupply() : async Nat {
-    var total = 0;
-    for (balance in Map.vals<Principal, Nat>(ledger)) {
-      total += balance;
-    };
-    return total;
+      var total = 0;
+      for (balance in ledger.vals()) {
+          total += balance;
+      };
+      return total;
   };
 
   public shared ({ caller }) func transfer(from : Principal, to : Principal, amount : Nat) : async Result<(), Text> {
-    let balanceFrom = Option.get(Map.get<Principal, Nat>(ledger, phash, from), 0);
-    let balanceTo = Option.get(Map.get<Principal, Nat>(ledger, phash, to), 0);
-    if (balanceFrom < amount) {
-      return #err("Insufficient balance to transfer");
-    };
-    Map.set<Principal, Nat>(ledger, phash, from, balanceFrom - amount);
-    Map.set<Principal, Nat>(ledger, phash, to, balanceTo + amount);
-    return #ok();
+      let balanceFrom = Option.get(ledger.get(from), 0);
+      let balanceTo = Option.get(ledger.get(to), 0);
+      if (balanceFrom < amount) {
+          return #err("Insufficient balance to transfer");
+      };
+      ledger.put(from, balanceFrom - amount);
+      ledger.put(to, balanceTo + amount);
+      return #ok();
   };
 };

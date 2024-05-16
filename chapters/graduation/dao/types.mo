@@ -1,6 +1,15 @@
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
+import Nat64 "mo:base/Nat64";
 module {
+    public type DAOStats = {
+        name : Text;
+        manifesto : Text;
+        goals : [Text];
+        members : [Text];
+        logo : Text;
+        numberOfMembers : Nat;
+    };
 
     public type Role = {
         #Student;
@@ -13,7 +22,7 @@ module {
         role : Role;
     };
 
-    public type ProposalId = Nat;
+    public type ProposalId = Nat64;
 
     public type ProposalContent = {
         #ChangeManifesto : Text; // Change the manifesto to the provided text
