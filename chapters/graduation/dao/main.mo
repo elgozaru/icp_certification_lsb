@@ -11,6 +11,7 @@ import Debug "mo:base/Debug";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import Int "mo:base/Int";
+import Hash "mo:base/Hash";
 import Types "types";
 //import tokenCanister "canister:graduation_token";
 //import webpageCanister "canister:webpage_token";
@@ -87,7 +88,7 @@ actor {
         members.put( Principal.fromText("nkqop-siaaa-aaaaj-qa3qq-cai"), initialMentor );
 
         var nextProposalId : ProposalId = 0;
-        let proposals = HashMap.HashMap<ProposalId, Proposal>(0, Nat64.equal, Nat64.toNat32 );
+        let proposals = HashMap.HashMap<ProposalId, Proposal>(0, Nat.equal, Hash.hash );
         
         let tokenCanister = actor("jaamb-mqaaa-aaaaj-qa3ka-cai") : actor {
                 mint : shared (owner : Principal, amount : Nat) -> async Result<(), Text>;
